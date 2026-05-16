@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>能耗录入 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #E8E8E8; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #595959; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-item.active { color: #1890FF; border-bottom-color: #1890FF; font-weight: 500; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 14px; color: #595959; margin-bottom: 8px; }
+        .form-input { width: 100%; max-width: 300px; height: 40px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; font-size: 14px; }
+        .form-select { width: 100%; max-width: 300px; height: 40px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; font-size: 14px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .action-link { color: #F5222D; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>能源管理</span><span>/</span><span>能耗录入</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="tab-bar">
+                <div class="tab-item active">单条录入</div>
+                <div class="tab-item">批量导入</div>
+            </div>
+            <div class="card mb-6">
+                <div class="card-header"><span class="card-title">录入表单</span></div>
+                <div class="card-body">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="form-label">能源类型</label>
+                            <select class="form-select"><option>电</option><option>水</option><option>气</option><option>热</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">计量点</label>
+                            <select class="form-select"><option>1号电表</option><option>2号电表</option><option>3号电表</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">录入日期</label>
+                            <input type="date" class="form-input" value="2026-04-28">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">录入数值</label>
+                            <input type="number" class="form-input" placeholder="请输入数值">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">抄表读数</label>
+                            <input type="number" class="form-input" placeholder="请输入抄表读数">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">备注说明</label>
+                            <input type="text" class="form-input" placeholder="请输入备注">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex gap-3">
+                        <button class="btn btn-primary"><i class="fa-solid fa-check"></i> 提交录入</button>
+                        <button class="btn btn-outline"><i class="fa-solid fa-rotate-left"></i> 重置</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">录入记录</span></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th>录入时间</th><th>能源类型</th><th>计量点</th><th>数值</th><th>录入人</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td>2026-04-28 10:30</td><td><i class="fa-solid fa-bolt text-blue-500"></i> 电</td><td>1号电表</td><td>1,234 kWh</td><td>管理员</td><td><span class="action-link">删除</span></td></tr>
+                            <tr><td>2026-04-28 10:00</td><td><i class="fa-solid fa-droplet text-teal-500"></i> 水</td><td>2号水表</td><td>456 m³</td><td>管理员</td><td><span class="action-link">删除</span></td></tr>
+                            <tr><td>2026-04-27 15:30</td><td><i class="fa-solid fa-bolt text-blue-500"></i> 电</td><td>2号电表</td><td>890 kWh</td><td>管理员</td><td><span class="action-link">删除</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+</body>
+</html>
