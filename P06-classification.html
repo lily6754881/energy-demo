@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分项计量 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #E8E8E8; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #595959; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-item:hover { color: #1890FF; }
+        .tab-item.active { color: #1890FF; border-bottom-color: #1890FF; font-weight: 500; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #1890FF; color: white; border: none; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .btn-outline:hover { border-color: #1890FF; color: #1890FF; }
+        .classification-card { background: white; border: 1px solid #E8E8E8; border-radius: 8px; padding: 20px; margin-bottom: 16px; transition: all 0.3s; }
+        .classification-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .classification-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .classification-name { font-size: 16px; font-weight: 600; color: #262626; display: flex; align-items: center; gap: 8px; }
+        .classification-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .classification-meta { display: flex; gap: 24px; margin-top: 12px; }
+        .classification-stat { font-size: 14px; color: #595959; }
+        .classification-stat span { color: #262626; font-weight: 600; margin-left: 4px; }
+        .progress-bar { height: 8px; background: #F0F0F0; border-radius: 4px; overflow: hidden; margin-top: 12px; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .chart-container { height: 300px; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">
+                <a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a>
+                <span>/</span>
+                <span>能源管理</span>
+                <span>/</span>
+                <span>分项计量</span>
+            </div>
+            <div class="user-avatar">管</div>
+        </div>
+
+        <div class="page-content">
+            <!-- 分项类型Tab -->
+            <div class="tab-bar">
+                <div class="tab-item active">照明用电</div>
+                <div class="tab-item">空调用电</div>
+                <div class="tab-item">动力用电</div>
+                <div class="tab-item">特殊用电</div>
+                <div class="tab-item">其他</div>
+            </div>
+
+            <!-- 分项配置卡片 -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="classification-card">
+                    <div class="classification-header">
+                        <div class="classification-name">
+                            <div class="classification-icon" style="background: #E6F7FF;">
+                                <i class="fa-solid fa-lightbulb" style="color: #1890FF;"></i>
+                            </div>
+                            照明用电
+                        </div>
+                        <button class="btn btn-outline" style="height: 32px; padding: 0 12px; font-size: 13px;">
+                            <i class="fa-solid fa-gear"></i> 配置
+                        </button>
+                    </div>
+                    <div style="font-size: 14px; color: #595959; margin-bottom: 8px;">
+                        包含监测点：1号照明总表、2号照明分表A、3号照明分表B
+                    </div>
+                    <div class="classification-meta">
+                        <div class="classification-stat">本月用电量：<span>12,345 kWh</span></div>
+                        <div class="classification-stat">占比：<span>35%</span></div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 35%; background: #1890FF;"></div>
+                    </div>
+                </div>
+                <div class="classification-card">
+                    <div class="classification-header">
+                        <div class="classification-name">
+                            <div class="classification-icon" style="background: #E6FFFB;">
+                                <i class="fa-solid fa-snowflake" style="color: #13C2C2;"></i>
+                            </div>
+                            空调用电
+                        </div>
+                        <button class="btn btn-outline" style="height: 32px; padding: 0 12px; font-size: 13px;">
+                            <i class="fa-solid fa-gear"></i> 配置
+                        </button>
+                    </div>
+                    <div style="font-size: 14px; color: #595959; margin-bottom: 8px;">
+                        包含监测点：中央空调主机、1号风机盘管、2号风机盘管
+                    </div>
+                    <div class="classification-meta">
+                        <div class="classification-stat">本月用电量：<span>18,567 kWh</span></div>
+                        <div class="classification-stat">占比：<span>52%</span></div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 52%; background: #13C2C2;"></div>
+                    </div>
+                </div>
+                <div class="classification-card">
+                    <div class="classification-header">
+                        <div class="classification-name">
+                            <div class="classification-icon" style="background: #FFF7E6;">
+                                <i class="fa-solid fa-motorway" style="color: #FA8C16;"></i>
+                            </div>
+                            动力用电
+                        </div>
+                        <button class="btn btn-outline" style="height: 32px; padding: 0 12px; font-size: 13px;">
+                            <i class="fa-solid fa-gear"></i> 配置
+                        </button>
+                    </div>
+                    <div style="font-size: 14px; color: #595959; margin-bottom: 8px;">
+                        包含监测点：电梯1号、电梯2号、泵房设备
+                    </div>
+                    <div class="classification-meta">
+                        <div class="classification-stat">本月用电量：<span>2,890 kWh</span></div>
+                        <div class="classification-stat">占比：<span>8%</span></div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 8%; background: #FA8C16;"></div>
+                    </div>
+                </div>
+                <div class="classification-card">
+                    <div class="classification-header">
+                        <div class="classification-name">
+                            <div class="classification-icon" style="background: #F9F0FF;">
+                                <i class="fa-solid fa-plug" style="color: #722ED1;"></i>
+                            </div>
+                            特殊用电
+                        </div>
+                        <button class="btn btn-outline" style="height: 32px; padding: 0 12px; font-size: 13px;">
+                            <i class="fa-solid fa-gear"></i> 配置
+                        </button>
+                    </div>
+                    <div style="font-size: 14px; color: #595959; margin-bottom: 8px;">
+                        包含监测点：服务器机房、特殊设备区
+                    </div>
+                    <div class="classification-meta">
+                        <div class="classification-stat">本月用电量：<span>1,780 kWh</span></div>
+                        <div class="classification-stat">占比：<span>5%</span></div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 5%; background: #722ED1;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">分项占比</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="pieChart" class="chart-container"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">近6月各分项用电趋势</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="trendChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 饼图
+            var pieChart = echarts.init(document.getElementById('pieChart'));
+            pieChart.setOption({
+                tooltip: { trigger: 'item', formatter: '{b}: {c}% ({d}%)' },
+                legend: { orient: 'vertical', right: '5%', top: 'center', textStyle: { color: '#595959' } },
+                series: [{
+                    type: 'pie',
+                    radius: ['45%', '70%'],
+                    center: ['35%', '50%'],
+                    itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+                    label: { show: false },
+                    data: [
+                        { value: 35, name: '照明用电', itemStyle: { color: '#1890FF' } },
+                        { value: 52, name: '空调用电', itemStyle: { color: '#13C2C2' } },
+                        { value: 8, name: '动力用电', itemStyle: { color: '#FA8C16' } },
+                        { value: 5, name: '特殊用电', itemStyle: { color: '#722ED1' } }
+                    ]
+                }]
+            });
+
+            // 趋势图
+            var trendChart = echarts.init(document.getElementById('trendChart'));
+            trendChart.setOption({
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['照明', '空调', '动力', '特殊'], bottom: 0, textStyle: { color: '#595959' } },
+                grid: { left: '3%', right: '4%', bottom: '18%', top: '3%', containLabel: true },
+                xAxis: { type: 'category', data: ['11月', '12月', '1月', '2月', '3月', '4月'], axisLine: { lineStyle: { color: '#E8E8E8' } } },
+                yAxis: { type: 'value', axisLine: { show: false }, splitLine: { lineStyle: { color: '#F0F0F0' } } },
+                series: [
+                    { name: '照明', type: 'line', smooth: true, data: [11000, 10500, 10200, 10800, 11500, 12345], itemStyle: { color: '#1890FF' } },
+                    { name: '空调', type: 'line', smooth: true, data: [8500, 12000, 18500, 19200, 16500, 18567], itemStyle: { color: '#13C2C2' } },
+                    { name: '动力', type: 'line', smooth: true, data: [2800, 2750, 2700, 2780, 2850, 2890], itemStyle: { color: '#FA8C16' } },
+                    { name: '特殊', type: 'line', smooth: true, data: [1650, 1700, 1720, 1750, 1780, 1780], itemStyle: { color: '#722ED1' } }
+                ]
+            });
+
+            window.addEventListener('resize', function() {
+                pieChart.resize();
+                trendChart.resize();
+            });
+
+            // Tab切换
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
