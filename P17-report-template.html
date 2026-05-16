@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报表模板 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .template-card { border: 1px solid #E8E8E8; border-radius: 8px; padding: 20px; margin-bottom: 16px; transition: all 0.3s; }
+        .template-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .template-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .template-icon { width: 40px; height: 40px; background: #E6F7FF; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #1890FF; font-size: 18px; margin-right: 12px; }
+        .template-name { font-size: 16px; font-weight: 600; color: #262626; }
+        .template-meta { font-size: 14px; color: #8C8C8C; margin-bottom: 8px; }
+        .action-link { color: #1890FF; cursor: pointer; margin-left: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>报表中心</span><span>/</span><span>报表模板</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body"><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新建模板</button></div>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                <div class="template-card">
+                    <div class="template-header">
+                        <div class="flex items-center">
+                            <div class="template-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                            <div class="template-name">能耗汇总报表模板</div>
+                        </div>
+                    </div>
+                    <div class="template-meta">包含内容：各租户用能汇总、分项统计、费用计算</div>
+                    <div class="template-meta">使用次数：<span class="text-gray-800">45次</span> | 更新时间：<span class="text-gray-800">2026-04-01</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-pen"></i> 编辑</span><span class="action-link"><i class="fa-solid fa-copy"></i> 复制</span><span class="action-link text-red-500"><i class="fa-solid fa-trash"></i> 删除</span></div>
+                </div>
+                <div class="template-card">
+                    <div class="template-header">
+                        <div class="flex items-center">
+                            <div class="template-icon" style="background:#E6FFFB;color:#13C2C2;"><i class="fa-solid fa-leaf"></i></div>
+                            <div class="template-name">月度碳排放报告模板</div>
+                        </div>
+                    </div>
+                    <div class="template-meta">包含内容：碳排放量、排放因子、趋势分析、同比对比</div>
+                    <div class="template-meta">使用次数：<span class="text-gray-800">12次</span> | 更新时间：<span class="text-gray-800">2026-03-15</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-pen"></i> 编辑</span><span class="action-link"><i class="fa-solid fa-copy"></i> 复制</span><span class="action-link text-red-500"><i class="fa-solid fa-trash"></i> 删除</span></div>
+                </div>
+                <div class="template-card">
+                    <div class="template-header">
+                        <div class="flex items-center">
+                            <div class="template-icon" style="background:#FFF7E6;color:#FA8C16;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <div class="template-name">账单汇总报表模板</div>
+                        </div>
+                    </div>
+                    <div class="template-meta">包含内容：租户账单汇总、分项明细、费用构成</div>
+                    <div class="template-meta">使用次数：<span class="text-gray-800">28次</span> | 更新时间：<span class="text-gray-800">2026-04-10</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-pen"></i> 编辑</span><span class="action-link"><i class="fa-solid fa-copy"></i> 复制</span><span class="action-link text-red-500"><i class="fa-solid fa-trash"></i> 删除</span></div>
+                </div>
+                <div class="template-card">
+                    <div class="template-header">
+                        <div class="flex items-center">
+                            <div class="template-icon" style="background:#F9F0FF;color:#722ED1;"><i class="fa-solid fa-chart-line"></i></div>
+                            <div class="template-name">用能趋势分析模板</div>
+                        </div>
+                    </div>
+                    <div class="template-meta">包含内容：多维度趋势分析、同比环比、预测数据</div>
+                    <div class="template-meta">使用次数：<span class="text-gray-800">18次</span> | 更新时间：<span class="text-gray-800">2026-03-20</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-pen"></i> 编辑</span><span class="action-link"><i class="fa-solid fa-copy"></i> 复制</span><span class="action-link text-red-500"><i class="fa-solid fa-trash"></i> 删除</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
