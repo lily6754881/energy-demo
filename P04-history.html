@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史曲线 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .filter-item { display: flex; align-items: center; gap: 8px; }
+        .filter-label { font-size: 14px; color: #595959; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .date-input { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; font-size: 14px; width: 140px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #1890FF; color: white; border: none; }
+        .btn-primary:hover { background: #096DD9; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .btn-outline:hover { border-color: #1890FF; color: #1890FF; }
+        .chart-container { height: 350px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .compare-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+        .compare-tag.up { color: #F5222D; }
+        .compare-tag.down { color: #52C41A; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">
+                <a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a>
+                <span>/</span>
+                <span>能源管理</span>
+                <span>/</span>
+                <span>历史曲线</span>
+            </div>
+            <div class="topbar-right">
+                <div class="user-avatar">管</div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <!-- 筛选条件 -->
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <span class="filter-label">监测点</span>
+                            <select class="filter-select">
+                                <option>A栋-1F-01配电箱</option>
+                                <option>A栋-2F-02空调</option>
+                                <option>B栋-1F-01水表</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">时间范围</span>
+                            <input type="date" class="date-input" value="2026-04-01">
+                            <span>至</span>
+                            <input type="date" class="date-input" value="2026-04-28">
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">对比项</span>
+                            <button class="btn btn-outline"><i class="fa-solid fa-plus"></i> 添加对比</button>
+                        </div>
+                        <button class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+                        <button class="btn btn-outline"><i class="fa-solid fa-download"></i> 导出</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 曲线图 -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <span class="card-title">用能趋势曲线</span>
+                    <div class="flex gap-4 text-sm">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-4 h-4"> 电力(kWh)
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4"> 水(m³)
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4"> 气(m³)
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="historyChart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <!-- 数据列表 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">数据明细</span>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>用电量(kWh)</th>
+                                <th>用水量(m³)</th>
+                                <th>用气量(m³)</th>
+                                <th>电费(元)</th>
+                                <th>水费(元)</th>
+                                <th>费用合计(元)</th>
+                                <th>对比昨日</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-04-28</td>
+                                <td>1,234</td>
+                                <td>456</td>
+                                <td>78</td>
+                                <td>520.68</td>
+                                <td>182.40</td>
+                                <td class="font-medium">703.08</td>
+                                <td><span class="compare-tag up"><i class="fa-solid fa-arrow-up"></i> 12.5%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-27</td>
+                                <td>1,102</td>
+                                <td>430</td>
+                                <td>65</td>
+                                <td>464.84</td>
+                                <td>172.00</td>
+                                <td class="font-medium">636.84</td>
+                                <td><span class="compare-tag down"><i class="fa-solid fa-arrow-down"></i> 3.2%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-26</td>
+                                <td>1,138</td>
+                                <td>445</td>
+                                <td>70</td>
+                                <td>480.03</td>
+                                <td>178.00</td>
+                                <td class="font-medium">658.03</td>
+                                <td><span class="compare-tag up"><i class="fa-solid fa-arrow-up"></i> 5.8%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-25</td>
+                                <td>1,075</td>
+                                <td>420</td>
+                                <td>68</td>
+                                <td>453.50</td>
+                                <td>168.00</td>
+                                <td class="font-medium">621.50</td>
+                                <td><span class="compare-tag down"><i class="fa-solid fa-arrow-down"></i> 1.5%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-04-24</td>
+                                <td>1,092</td>
+                                <td>435</td>
+                                <td>72</td>
+                                <td>460.78</td>
+                                <td>174.00</td>
+                                <td class="font-medium">634.78</td>
+                                <td><span class="compare-tag down"><i class="fa-solid fa-arrow-down"></i> 2.1%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var chart = echarts.init(document.getElementById('historyChart'));
+            chart.setOption({
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['电力(kWh)'], bottom: 0 },
+                grid: { left: '3%', right: '4%', bottom: '15%', top: '3%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: ['04-01', '04-05', '04-10', '04-15', '04-20', '04-25', '04-28'],
+                    axisLine: { lineStyle: { color: '#E8E8E8' } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'kWh',
+                    axisLine: { show: false },
+                    splitLine: { lineStyle: { color: '#F0F0F0' } }
+                },
+                dataZoom: [
+                    { type: 'inside', start: 0, end: 100 },
+                    { type: 'slider', start: 0, end: 100 }
+                ],
+                series: [{
+                    name: '电力(kWh)',
+                    type: 'line',
+                    smooth: true,
+                    data: [1200, 1350, 1280, 1420, 1380, 1250, 1234],
+                    itemStyle: { color: '#1890FF' },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(24,144,255,0.3)' },
+                                { offset: 1, color: 'rgba(24,144,255,0.05)' }
+                            ]
+                        }
+                    }
+                }]
+            });
+            window.addEventListener('resize', function() { chart.resize(); });
+        });
+    </script>
+
+</body>
+</html>
