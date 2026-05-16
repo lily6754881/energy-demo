@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参数配置 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.45); font-size: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { color: rgba(255,255,255,0.8); }
+        .menu-group-header.active { color: white; }
+        .menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-arrow.active { transform: rotate(90deg); }
+        .menu-group-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 48px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #E8E8E8; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #595959; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-item.active { color: #1890FF; border-bottom-color: #1890FF; font-weight: 500; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .action-link { color: #1890FF; cursor: pointer; margin-right: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo"><i class="fa-solid fa-leaf"></i><span>能碳管理平台</span></div>
+        <div class="sidebar-menu" id="nav-container"></div>
+    </aside>
+    <script src="sidebar-nav.js"></script>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>系统管理</span><span>/</span><span>参数配置</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="tab-bar">
+                <div class="tab-item active">碳排放因子</div>
+                <div class="tab-item">电价配置</div>
+                <div class="tab-item">水价配置</div>
+                <div class="tab-item">其他参数</div>
+            </div>
+            <div class="card mb-6">
+                <div class="card-body"><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增因子</button></div>
+            </div>
+            <div class="card mb-6">
+                <div class="card-header"><span class="card-title">碳排放因子配置</span></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th>能源类型</th><th>排放因子</th><th>单位</th><th>来源</th><th>生效日期</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td><i class="fa-solid fa-bolt text-blue-500 mr-2"></i> 电力（全国电网平均）</td><td class="font-medium">0.5839</td><td>kgCO2/kWh</td><td>生态环境部</td><td>2024-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">编辑</span><span class="action-link">删除</span></td></tr>
+                            <tr><td><i class="fa-solid fa-bolt text-blue-500 mr-2"></i> 电力（华北电网）</td><td class="font-medium">0.8843</td><td>kgCO2/kWh</td><td>生态环境部</td><td>2024-01-01</td><td><label class="flex items-center"><input type="checkbox" class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">编辑</span><span class="action-link">删除</span></td></tr>
+                            <tr><td><i class="fa-solid fa-fire text-orange-500 mr-2"></i> 天然气</td><td class="font-medium">2.1622</td><td>kgCO2/m³</td><td>IPCC</td><td>2024-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">编辑</span><span class="action-link">删除</span></td></tr>
+                            <tr><td><i class="fa-solid fa-fire text-orange-500 mr-2"></i> 液化石油气</td><td class="font-medium">3.1086</td><td>kgCO2/kg</td><td>IPCC</td><td>2024-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">编辑</span><span class="action-link">删除</span></td></tr>
+                            <tr><td><i class="fa-solid fa-temperature-half text-red-500 mr-2"></i> 蒸汽</td><td class="font-medium">0.11</td><td>kgCO2/kg</td><td>参考值</td><td>2024-01-01</td><td><label class="flex items-center"><input type="checkbox" class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">编辑</span><span class="action-link">删除</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">电价配置</span></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th>电价类型</th><th>时段/阶梯</th><th>单价(元/kWh)</th><th>生效日期</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td rowspan="4">峰谷电价</td><td>尖峰</td><td class="font-medium">1.20</td><td>2026-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td rowspan="4"><span class="action-link">编辑</span></td></tr>
+                            <tr><td>高峰</td><td class="font-medium">0.95</td><td>2026-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td></tr>
+                            <tr><td>平段</td><td class="font-medium">0.65</td><td>2026-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td></tr>
+                            <tr><td>低谷</td><td class="font-medium">0.35</td><td>2026-01-01</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+</body>
+</html>
