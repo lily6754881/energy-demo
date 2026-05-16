@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时监测 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { 
+            padding: 10px 20px; 
+            color: rgba(255,255,255,0.65); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            font-size: 15px;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb a { color: #8C8C8C; text-decoration: none; }
+        .breadcrumb a:hover { color: #1890FF; }
+        .breadcrumb span { color: #262626; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .topbar-icon { position: relative; cursor: pointer; color: #595959; font-size: 18px; }
+        .topbar-icon .badge { position: absolute; top: -6px; right: -8px; background: #F5222D; color: white; font-size: 10px; padding: 2px 5px; border-radius: 10px; min-width: 16px; text-align: center; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .stat-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .stat-value { font-size: 28px; font-weight: 600; color: #262626; }
+        .stat-change { font-size: 12px; margin-top: 8px; }
+        .stat-change.up { color: #F5222D; }
+        .stat-change.down { color: #52C41A; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-item { display: flex; align-items: center; gap: 8px; }
+        .filter-label { font-size: 14px; color: #595959; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #1890FF; color: white; border: none; }
+        .btn-primary:hover { background: #096DD9; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .btn-outline:hover { border-color: #1890FF; color: #1890FF; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .data-table tr:nth-child(even) { background: #FAFAFA; }
+        .data-table tr:nth-child(even):hover { background: #F0F0F0; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.normal { background: #52C41A; }
+        .status-dot.warning { background: #FA8C16; }
+        .status-dot.error { background: #F5222D; }
+        .status-dot.offline { background: #8C8C8C; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .pagination-info { font-size: 14px; color: #595959; }
+        .pagination-controls { display: flex; gap: 8px; }
+        .page-btn { min-width: 32px; height: 32px; border: 1px solid #D9D9D9; border-radius: 4px; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .page-btn:hover { border-color: #1890FF; color: #1890FF; }
+        .page-btn.active { background: #1890FF; color: white; border-color: #1890FF; }
+        .action-link { color: #1890FF; cursor: pointer; margin-right: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">
+                <a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a>
+                <span>/</span>
+                <span>能源管理</span>
+                <span>/</span>
+                <span>实时监测</span>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-icon"><i class="fa-regular fa-bell"></i><span class="badge">2</span></div>
+                <div class="user-avatar">管</div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <!-- 顶部统计卡片 -->
+            <div class="grid grid-cols-4 gap-6 mb-6">
+                <div class="stat-card flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-500">
+                        <i class="fa-solid fa-bolt text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">今日用电</div>
+                        <div class="stat-value">1,234 <span class="text-sm font-normal">kWh</span></div>
+                        <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> 12.5%</div>
+                    </div>
+                </div>
+                <div class="stat-card flex items-center gap-4">
+                    <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center text-teal-500">
+                        <i class="fa-solid fa-droplet text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">今日用水</div>
+                        <div class="stat-value">456 <span class="text-sm font-normal">m³</span></div>
+                        <div class="stat-change down"><i class="fa-solid fa-arrow-down"></i> 5.2%</div>
+                    </div>
+                </div>
+                <div class="stat-card flex items-center gap-4">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-500">
+                        <i class="fa-solid fa-fire text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">今日用气</div>
+                        <div class="stat-value">78 <span class="text-sm font-normal">m³</span></div>
+                        <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> 3.8%</div>
+                    </div>
+                </div>
+                <div class="stat-card flex items-center gap-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-500">
+                        <i class="fa-solid fa-temperature-half text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">在线设备</div>
+                        <div class="stat-value">128 <span class="text-sm font-normal">/ 135</span></div>
+                        <div class="stat-change down text-green-500"><i class="fa-solid fa-check"></i> 正常</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选条件 -->
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <span class="filter-label">楼栋</span>
+                            <select class="filter-select">
+                                <option>全部</option>
+                                <option>A栋</option>
+                                <option>B栋</option>
+                                <option>C栋</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">区域</span>
+                            <select class="filter-select">
+                                <option>全部</option>
+                                <option>1层</option>
+                                <option>2层</option>
+                                <option>3层</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">租户</span>
+                            <select class="filter-select">
+                                <option>全部</option>
+                                <option>A科技有限公司</option>
+                                <option>B商贸公司</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">监测类型</span>
+                            <select class="filter-select">
+                                <option>全部</option>
+                                <option>电力</option>
+                                <option>水</option>
+                                <option>气</option>
+                                <option>热</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">状态</span>
+                            <select class="filter-select">
+                                <option>全部</option>
+                                <option>正常</option>
+                                <option>告警</option>
+                                <option>离线</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline"><i class="fa-solid fa-rotate-left"></i> 重置</button>
+                        <button class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">实时监测数据</span>
+                    <div class="flex gap-3">
+                        <button class="btn btn-outline"><i class="fa-solid fa-download"></i> 导出</button>
+                        <button class="btn btn-primary"><i class="fa-solid fa-rotate"></i> 刷新</button>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox"></th>
+                                <th>监测点名称</th>
+                                <th>所属楼栋</th>
+                                <th>所属区域</th>
+                                <th>租户</th>
+                                <th>类型</th>
+                                <th>当前值</th>
+                                <th>更新时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td class="font-medium">A栋-1F-01配电箱</td>
+                                <td>A栋</td>
+                                <td>1层公共区</td>
+                                <td>公共区域</td>
+                                <td><span class="text-blue-500"><i class="fa-solid fa-bolt"></i> 电力</span></td>
+                                <td>12.5 kW</td>
+                                <td>10:30:25</td>
+                                <td><span class="status-dot normal"></span>正常</td>
+                                <td>
+                                    <span class="action-link">详情</span>
+                                    <span class="action-link">曲线</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td class="font-medium">A栋-1F-A公司电表</td>
+                                <td>A栋</td>
+                                <td>1层</td>
+                                <td>A科技有限公司</td>
+                                <td><span class="text-blue-500"><i class="fa-solid fa-bolt"></i> 电力</span></td>
+                                <td>8.3 kW</td>
+                                <td>10:30:20</td>
+                                <td><span class="status-dot normal"></span>正常</td>
+                                <td>
+                                    <span class="action-link">详情</span>
+                                    <span class="action-link">曲线</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td class="font-medium">A栋-2F-02空调</td>
+                                <td>A栋</td>
+                                <td>2层公共区</td>
+                                <td>公共区域</td>
+                                <td><span class="text-blue-500"><i class="fa-solid fa-bolt"></i> 电力</span></td>
+                                <td class="text-red-500">15.8 kW</td>
+                                <td>10:30:18</td>
+                                <td><span class="status-dot warning"></span>告警</td>
+                                <td>
+                                    <span class="action-link">详情</span>
+                                    <span class="action-link">曲线</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td class="font-medium">B栋-1F-01水表</td>
+                                <td>B栋</td>
+                                <td>1层</td>
+                                <td>B商贸公司</td>
+                                <td><span class="text-teal-500"><i class="fa-solid fa-droplet"></i> 水</span></td>
+                                <td>2.5 m³/h</td>
+                                <td>10:30:15</td>
+                                <td><span class="status-dot normal"></span>正常</td>
+                                <td>
+                                    <span class="action-link">详情</span>
+                                    <span class="action-link">曲线</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td class="font-medium">C栋-1F-01燃气表</td>
+                                <td>C栋</td>
+                                <td>1层</td>
+                                <td>C物业公司</td>
+                                <td><span class="text-orange-500"><i class="fa-solid fa-fire"></i> 气</span></td>
+                                <td class="text-gray-400">--</td>
+                                <td>09:00:00</td>
+                                <td><span class="status-dot offline"></span>离线</td>
+                                <td>
+                                    <span class="action-link">详情</span>
+                                    <span class="action-link">曲线</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td class="font-medium">A栋-中央空调主机</td>
+                                <td>A栋</td>
+                                <td>设备间</td>
+                                <td>公共区域</td>
+                                <td><span class="text-red-500"><i class="fa-solid fa-temperature-half"></i> 热</span></td>
+                                <td>125.6 kW</td>
+                                <td>10:30:10</td>
+                                <td><span class="status-dot normal"></span>正常</td>
+                                <td>
+                                    <span class="action-link">详情</span>
+                                    <span class="action-link">曲线</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination" style="padding: 16px 20px;">
+                        <div class="pagination-info">共 256 条记录，每页显示 10 条</div>
+                        <div class="pagination-controls">
+                            <button class="page-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">...</button>
+                            <button class="page-btn">26</button>
+                            <button class="page-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+</html>
