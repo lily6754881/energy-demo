@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户权限 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.45); font-size: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { color: rgba(255,255,255,0.8); }
+        .menu-group-header.active { color: white; }
+        .menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-arrow.active { transform: rotate(90deg); }
+        .menu-group-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 48px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #E8E8E8; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #595959; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-item.active { color: #1890FF; border-bottom-color: #1890FF; font-weight: 500; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .action-link { color: #1890FF; cursor: pointer; margin-right: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo"><i class="fa-solid fa-leaf"></i><span>能碳管理平台</span></div>
+        <div class="sidebar-menu" id="nav-container"></div>
+    </aside>
+    <script src="sidebar-nav.js"></script>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>系统管理</span><span>/</span><span>用户权限</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="tab-bar">
+                <div class="tab-item active">用户管理</div>
+                <div class="tab-item">角色管理</div>
+            </div>
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增用户</button>
+                        <button class="btn btn-outline"><i class="fa-solid fa-upload"></i> 批量导入</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">用户列表</span></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th style="width:40px;"><input type="checkbox"></th><th>用户名</th><th>姓名</th><th>手机号</th><th>角色</th><th>所属租户</th><th>最后登录</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">admin</td><td>管理员</td><td>138****1234</td><td><span class="text-purple-500">超级管理员</span></td><td>-</td><td>2026-04-28</td><td><span class="action-link">编辑</span><span class="action-link">重置密码</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">zhangsan</td><td>张明</td><td>139****5678</td><td><span class="text-blue-500">园区管理员</span></td><td>A科技有限公司</td><td>2026-04-28</td><td><span class="action-link">编辑</span><span class="action-link">重置密码</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">lisi</td><td>李思</td><td>137****9012</td><td><span class="text-green-500">财务专员</span></td><td>-</td><td>2026-04-27</td><td><span class="action-link">编辑</span><span class="action-link">重置密码</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card mt-6">
+                <div class="card-header"><span class="card-title">角色列表</span></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th>角色名称</th><th>角色描述</th><th>用户数</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td class="font-medium text-purple-500">超级管理员</td><td>系统全部权限</td><td>2</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">权限配置</span></td></tr>
+                            <tr><td class="font-medium text-blue-500">园区管理员</td><td>本园区全部权限</td><td>5</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">权限配置</span></td></tr>
+                            <tr><td class="font-medium text-green-500">财务专员</td><td>账单报表权限</td><td>3</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">权限配置</span></td></tr>
+                            <tr><td class="font-medium text-gray-500">租户用户</td><td>查看自身数据</td><td>20</td><td><label class="flex items-center"><input type="checkbox" checked class="w-4 h-4 mr-2">启用</label></td><td><span class="action-link">权限配置</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+</body>
+</html>
