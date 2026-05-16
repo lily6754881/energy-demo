@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>碳排放核算 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .stat-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); text-align: center; }
+        .stat-value { font-size: 32px; font-weight: 700; color: #262626; }
+        .stat-label { font-size: 14px; color: #8C8C8C; margin-top: 8px; }
+        .stat-change { font-size: 14px; margin-top: 8px; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 160px; font-size: 14px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-success { background: #52C41A; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .chart-container { height: 300px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>碳管理</span><span>/</span><span>碳排放核算</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <div class="flex items-center gap-3">
+                            <span class="text-gray-600">核算周期</span>
+                            <select class="filter-select"><option>2026年4月</option><option>2026年3月</option><option>2026年2月</option></select>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-gray-600">核算范围</span>
+                            <select class="filter-select"><option>全部</option><option>A科技有限公司</option><option>B商贸公司</option></select>
+                        </div>
+                        <button class="btn btn-primary"><i class="fa-solid fa-calculator"></i> 开始核算</button>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-6 mb-6">
+                <div class="stat-card"><div class="stat-value text-blue-500">12,345</div><div class="stat-label">本月碳排放(tCO₂)</div><div class="stat-change text-green-500"><i class="fa-solid fa-arrow-down"></i> 8.5% 同比</div></div>
+                <div class="stat-card"><div class="stat-value">0.85</div><div class="stat-label">碳排放强度(t/㎡)</div><div class="stat-change text-green-500"><i class="fa-solid fa-arrow-down"></i> 下降</div></div>
+                <div class="stat-card"><div class="stat-value text-orange-500">8,000</div><div class="stat-label">碳配额余量(t)</div><div class="stat-change">剩余65%</div></div>
+                <div class="stat-card"><div class="stat-value">35,678</div><div class="stat-label">用电量(kWh)</div><div class="stat-change text-blue-500">范围2排放</div></div>
+            </div>
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">排放构成</span></div>
+                    <div class="card-body"><div id="pieChart" class="chart-container"></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">排放趋势(近12月)</span></div>
+                    <div class="card-body"><div id="trendChart" class="chart-container"></div></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">核算明细</span>
+                    <div class="flex gap-3">
+                        <button class="btn btn-outline"><i class="fa-solid fa-file-pdf"></i> 生成报告</button>
+                        <button class="btn btn-success"><i class="fa-solid fa-download"></i> 导出数据</button>
+                    </div>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th>能源类型</th><th>消耗量</th><th>排放因子</th><th>碳排放量(tCO₂)</th><th>占比</th></tr></thead>
+                        <tbody>
+                            <tr><td><i class="fa-solid fa-bolt text-blue-500"></i> 电力</td><td>35,678 kWh</td><td>0.5839</td><td>20.83</td><td>65%</td></tr>
+                            <tr><td><i class="fa-solid fa-fire text-orange-500"></i> 天然气</td><td>1,234 m³</td><td>2.1622</td><td>2.67</td><td>25%</td></tr>
+                            <tr><td><i class="fa-solid fa-droplet text-teal-500"></i> 液化气</td><td>456 kg</td><td>3.1086</td><td>1.42</td><td>10%</td></tr>
+                            <tr style="font-weight:600;background:#FAFAFA;"><td>合计</td><td>-</td><td>-</td><td>24.92</td><td>100%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var pieChart = echarts.init(document.getElementById('pieChart'));
+            pieChart.setOption({tooltip:{trigger:'item',formatter:'{b}: {c}% ({d}%)'},legend:{orient:'vertical',right:'5%',top:'center'},series:[{type:'pie',radius:['45%','70%'],center:['35%','50%'],itemStyle:{borderRadius:4,borderColor:'#fff',borderWidth:2},label:{show:false},data:[{value:65,name:'电力',itemStyle:{color:'#1890FF'}},{value:25,name:'天然气',itemStyle:{color:'#FA8C16'}},{value:10,name:'液化气',itemStyle:{color:'#13C2C2'}}]}]});
+            var trendChart = echarts.init(document.getElementById('trendChart'));
+            trendChart.setOption({tooltip:{trigger:'axis'},grid:{left:'3%',right:'4%',bottom:'10%',top:'3%',containLabel:true},xAxis:{type:'category',data:['5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月','4月'],axisLine:{lineStyle:{color:'#E8E8E8'}}},yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'#F0F0F0'}}},series:[{type:'bar',data:[14200,13800,13500,13200,12800,12500,12300,12100,12000,11800,12300,12345],itemStyle:{color:'#52C41A',borderRadius:[4,4,0,0]},barWidth:'60%'}]});
+            window.addEventListener('resize', function(){pieChart.resize();trendChart.resize();});
+        });
+    </script>
+
+</body>
+</html>
