@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排放报告 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-success { background: #52C41A; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .report-card { border: 1px solid #E8E8E8; border-radius: 8px; padding: 20px; margin-bottom: 16px; transition: all 0.3s; }
+        .report-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .report-icon { width: 48px; height: 48px; background: #E6F7FF; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #1890FF; font-size: 20px; margin-right: 12px; }
+        .report-name { font-size: 16px; font-weight: 600; color: #262626; }
+        .report-meta { font-size: 14px; color: #8C8C8C; margin-top: 4px; }
+        .status-tag { display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 12px; }
+        .status-tag.generated { background: #F6FFED; color: #52C41A; }
+        .status-tag.pending { background: #FFF7E6; color: #FA8C16; }
+        .action-link { color: #1890FF; cursor: pointer; margin-left: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>碳管理</span><span>/</span><span>排放报告</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex gap-3">
+                            <button class="btn btn-primary"><i class="fa-solid fa-file-circle-plus"></i> 生成报告</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-download"></i> 导出报告</button>
+                        </div>
+                        <div class="filter-bar" style="margin-bottom:0;">
+                            <select class="filter-select"><option>月度报告</option><option>年度报告</option></select>
+                            <select class="filter-select"><option>2026年</option><option>2025年</option></select>
+                            <select class="filter-select"><option>全部状态</option><option>已生成</option><option>待生成</option></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="flex items-start">
+                            <div class="report-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                            <div>
+                                <div class="report-name">月度碳排放报告 - 2026年4月</div>
+                                <div class="report-meta">生成时间：2026-04-25 10:00 | 状态：<span class="status-tag generated">已生成</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-meta">碳排放量：<span class="font-medium text-gray-800">12,345 tCO₂</span> | 覆盖范围：<span>全部</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-download"></i> 下载</span><span class="action-link"><i class="fa-solid fa-share"></i> 分享</span></div>
+                </div>
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="flex items-start">
+                            <div class="report-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                            <div>
+                                <div class="report-name">月度碳排放报告 - 2026年3月</div>
+                                <div class="report-meta">生成时间：2026-03-25 10:00 | 状态：<span class="status-tag generated">已生成</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-meta">碳排放量：<span class="font-medium text-gray-800">11,890 tCO₂</span> | 覆盖范围：<span>全部</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-download"></i> 下载</span><span class="action-link"><i class="fa-solid fa-share"></i> 分享</span></div>
+                </div>
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="flex items-start">
+                            <div class="report-icon" style="background:#FFF7E6;color:#FA8C16;"><i class="fa-solid fa-file-pdf"></i></div>
+                            <div>
+                                <div class="report-name">年度报告 - 2025年</div>
+                                <div class="report-meta">生成时间：2026-01-05 10:00 | 状态：<span class="status-tag generated">已生成</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-meta">碳排放量：<span class="font-medium text-gray-800">156,780 tCO₂</span> | 覆盖范围：<span>全部</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-eye"></i> 预览</span><span class="action-link"><i class="fa-solid fa-download"></i> 下载</span><span class="action-link"><i class="fa-solid fa-share"></i> 分享</span></div>
+                </div>
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="flex items-start">
+                            <div class="report-icon" style="background:#F5F5F5;color:#8C8C8C;"><i class="fa-solid fa-clock"></i></div>
+                            <div>
+                                <div class="report-name">月度碳排放报告 - 2026年2月</div>
+                                <div class="report-meta">生成时间：待生成 | 状态：<span class="status-tag pending">待生成</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="report-meta">碳排放量：<span class="text-gray-400">--</span> | 覆盖范围：<span>全部</span></div>
+                    <div class="mt-4"><span class="action-link"><i class="fa-solid fa-play"></i> 立即生成</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
