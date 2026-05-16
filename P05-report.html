@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据报表 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #E8E8E8; }
+        .tab-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #595959; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-item:hover { color: #1890FF; }
+        .tab-item.active { color: #1890FF; border-bottom-color: #1890FF; font-weight: 500; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .filter-item { display: flex; align-items: center; gap: 8px; }
+        .filter-label { font-size: 14px; color: #595959; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #1890FF; color: white; border: none; }
+        .btn-primary:hover { background: #096DD9; }
+        .btn-success { background: #52C41A; color: white; border: none; }
+        .btn-success:hover { background: #389E0D; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .btn-outline:hover { border-color: #1890FF; color: #1890FF; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .data-table .total-row { background: #FAFAFA; font-weight: 600; }
+        .report-preview { border: 1px solid #E8E8E8; border-radius: 8px; padding: 24px; }
+        .report-title { text-align: center; font-size: 20px; font-weight: 600; color: #262626; margin-bottom: 8px; }
+        .report-subtitle { text-align: center; font-size: 14px; color: #595959; margin-bottom: 24px; }
+        .report-section { margin-bottom: 20px; }
+        .report-section-title { font-size: 14px; font-weight: 600; color: #262626; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #E8E8E8; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .summary-item { text-align: center; padding: 16px; background: #F5F5F5; border-radius: 8px; }
+        .summary-value { font-size: 24px; font-weight: 600; color: #1890FF; }
+        .summary-label { font-size: 12px; color: #8C8C8C; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb">
+                <a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a>
+                <span>/</span>
+                <span>能源管理</span>
+                <span>/</span>
+                <span>数据报表</span>
+            </div>
+            <div class="user-avatar">管</div>
+        </div>
+
+        <div class="page-content">
+            <!-- 报表类型Tab -->
+            <div class="tab-bar">
+                <div class="tab-item active">日报</div>
+                <div class="tab-item">周报</div>
+                <div class="tab-item">月报</div>
+                <div class="tab-item">年报</div>
+                <div class="tab-item">自定义</div>
+            </div>
+
+            <!-- 配置栏 -->
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <span class="filter-label">报表模板</span>
+                            <select class="filter-select">
+                                <option>能耗汇总报表</option>
+                                <option>分项计量报表</option>
+                                <option>碳排放报表</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">时间范围</span>
+                            <select class="filter-select">
+                                <option>2026年4月</option>
+                                <option>2026年3月</option>
+                                <option>2026年2月</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span class="filter-label">租户</span>
+                            <select class="filter-select">
+                                <option>全部</option>
+                                <option>A科技有限公司</option>
+                                <option>B商贸公司</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary"><i class="fa-solid fa-file-alt"></i> 生成报表</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 报表预览 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">报表预览</span>
+                    <div class="flex gap-3">
+                        <button class="btn btn-outline"><i class="fa-solid fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn btn-outline"><i class="fa-solid fa-file-pdf"></i> 导出PDF</button>
+                        <button class="btn btn-success"><i class="fa-solid fa-print"></i> 打印</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="report-preview">
+                        <div class="report-title">能耗汇总报表</div>
+                        <div class="report-subtitle">统计周期：2026年4月 | 生成时间：2026-04-28 10:00</div>
+                        
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-value">35,678</div>
+                                <div class="summary-label">总用电量(kWh)</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">12,456</div>
+                                <div class="summary-label">总用水量(m³)</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">2,345</div>
+                                <div class="summary-label">总用气量(m³)</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">¥152,680</div>
+                                <div class="summary-label">费用合计</div>
+                            </div>
+                        </div>
+
+                        <div class="report-section">
+                            <div class="report-section-title">各租户用能明细</div>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>租户名称</th>
+                                        <th>用电量(kWh)</th>
+                                        <th>用水量(m³)</th>
+                                        <th>用气量(m³)</th>
+                                        <th>电费(元)</th>
+                                        <th>水费(元)</th>
+                                        <th>费用合计(元)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>A科技有限公司</td>
+                                        <td>12,345</td>
+                                        <td>4,567</td>
+                                        <td>890</td>
+                                        <td>52,080.90</td>
+                                        <td>1,826.80</td>
+                                        <td class="font-medium">53,907.70</td>
+                                    </tr>
+                                    <tr>
+                                        <td>B商贸公司</td>
+                                        <td>8,901</td>
+                                        <td>3,234</td>
+                                        <td>567</td>
+                                        <td>37,560.22</td>
+                                        <td>1,293.60</td>
+                                        <td class="font-medium">38,853.82</td>
+                                    </tr>
+                                    <tr>
+                                        <td>C物业公司</td>
+                                        <td>6,789</td>
+                                        <td>2,456</td>
+                                        <td>456</td>
+                                        <td>28,645.58</td>
+                                        <td>982.40</td>
+                                        <td class="font-medium">29,627.98</td>
+                                    </tr>
+                                    <tr>
+                                        <td>公共区域</td>
+                                        <td>7,643</td>
+                                        <td>2,199</td>
+                                        <td>432</td>
+                                        <td>32,246.50</td>
+                                        <td>879.60</td>
+                                        <td class="font-medium">33,126.10</td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td>合计</td>
+                                        <td>35,678</td>
+                                        <td>12,456</td>
+                                        <td>2,345</td>
+                                        <td>150,533.20</td>
+                                        <td>4,982.40</td>
+                                        <td class="font-medium">¥155,515.60</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+</body>
+</html>
