@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账单管理 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-body { padding: 20px; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-success { background: #52C41A; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .btn-outline:hover { border-color: #1890FF; color: #1890FF; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .action-link { color: #1890FF; cursor: pointer; margin-right: 12px; }
+        .status-tag { display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 12px; }
+        .status-tag.pending { background: #E6F7FF; color: #1890FF; }
+        .status-tag.reviewed { background: #F6FFED; color: #52C41A; }
+        .status-tag.paid { background: #F5F5F5; color: #8C8C8C; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .pagination-info { font-size: 14px; color: #595959; }
+        .page-btn { min-width: 32px; height: 32px; border: 1px solid #D9D9D9; border-radius: 4px; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .page-btn.active { background: #1890FF; color: white; border-color: #1890FF; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>能源管理</span><span>/</span><span>账单管理</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex gap-3">
+                            <button class="btn btn-primary"><i class="fa-solid fa-file-circle-plus"></i> 生成账单</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-download"></i> 导出</button>
+                            <button class="btn btn-success"><i class="fa-solid fa-check-double"></i> 批量审核</button>
+                        </div>
+                        <div class="flex gap-3 items-center flex-wrap">
+                            <select class="filter-select"><option>全部租户</option><option>A科技有限公司</option><option>B商贸公司</option></select>
+                            <select class="filter-select"><option>2026年4月</option><option>2026年3月</option></select>
+                            <select class="filter-select"><option>全部状态</option><option>待审核</option><option>已审核</option><option>已支付</option></select>
+                            <button class="btn btn-outline"><i class="fa-solid fa-rotate-left"></i> 重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th style="width:40px;"><input type="checkbox"></th><th>租户名称</th><th>账单周期</th><th>用电量(kWh)</th><th>用水量(m³)</th><th>总金额(元)</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td><input type="checkbox"></td><td>A科技有限公司</td><td>2026-04</td><td>12,345</td><td>4,567</td><td class="font-medium">¥53,907.70</td><td><span class="status-tag pending">待审核</span></td><td><span class="action-link">详情</span><span class="action-link">审核</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td>B商贸公司</td><td>2026-04</td><td>8,901</td><td>3,234</td><td class="font-medium">¥38,853.82</td><td><span class="status-tag reviewed">已审核</span></td><td><span class="action-link">详情</span><span class="action-link">发布</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td>C物业公司</td><td>2026-04</td><td>6,789</td><td>2,456</td><td class="font-medium">¥29,627.98</td><td><span class="status-tag paid">已支付</span></td><td><span class="action-link">详情</span></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination" style="padding:16px 20px;">
+                        <div class="pagination-info">共 45 条记录</div>
+                        <div class="flex gap-2"><button class="page-btn"><i class="fa-solid fa-chevron-left"></i></button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">3</button><button class="page-btn">...</button><button class="page-btn">5</button><button class="page-btn"><i class="fa-solid fa-chevron-right"></i></button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
