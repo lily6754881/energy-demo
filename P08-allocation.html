@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分摊规则 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-success { background: #52C41A; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .btn-outline:hover { border-color: #1890FF; color: #1890FF; }
+        .rule-card { border: 1px solid #E8E8E8; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .rule-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .rule-name { font-size: 16px; font-weight: 600; color: #262626; }
+        .rule-meta { font-size: 14px; color: #595959; margin-bottom: 8px; }
+        .rule-meta span { color: #262626; }
+        .action-link { color: #1890FF; cursor: pointer; margin-left: 12px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>能源管理</span><span>/</span><span>分摊规则</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body"><button class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增规则</button></div>
+            </div>
+            <div class="card mb-6">
+                <div class="card-header"><span class="card-title">分摊规则列表</span></div>
+                <div class="card-body">
+                    <div class="rule-card">
+                        <div class="rule-header">
+                            <div class="rule-name"><i class="fa-solid fa-elevator text-blue-500 mr-2"></i>电梯公共用电分摊</div>
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="w-4 h-4"> 启用</label>
+                        </div>
+                        <div class="rule-meta">规则类型：<span class="font-medium">按面积分摊</span></div>
+                        <div class="rule-meta">包含区域：<span>1号楼电梯、2号楼电梯、3号楼电梯</span></div>
+                        <div class="rule-meta">适用租户：<span>A公司、B公司、C公司</span></div>
+                        <div class="mt-3"><span class="action-link">编辑</span><span class="action-link">删除</span><span class="action-link">执行</span></div>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-header">
+                            <div class="rule-name"><i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i>公共区域照明分摊</div>
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="w-4 h-4"> 启用</label>
+                        </div>
+                        <div class="rule-meta">规则类型：<span class="font-medium">按用量比例</span></div>
+                        <div class="rule-meta">包含区域：<span>1层大堂、2层大堂、地下停车场</span></div>
+                        <div class="rule-meta">适用租户：<span>A公司、B公司</span></div>
+                        <div class="mt-3"><span class="action-link">编辑</span><span class="action-link">删除</span><span class="action-link">执行</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">历史执行记录</span></div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th>执行时间</th><th>规则名称</th><th>执行结果</th><th>操作人</th></tr></thead>
+                        <tbody>
+                            <tr><td>2026-04-01 09:00</td><td>电梯公共用电分摊</td><td class="text-green-500">成功，5个租户</td><td>系统管理员</td></tr>
+                            <tr><td>2026-04-01 09:00</td><td>公共区域照明分摊</td><td class="text-green-500">成功，3个租户</td><td>系统管理员</td></tr>
+                            <tr><td>2026-03-01 09:00</td><td>电梯公共用电分摊</td><td class="text-green-500">成功，5个租户</td><td>系统管理员</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
