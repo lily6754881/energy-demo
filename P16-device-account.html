@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备台账 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .view-toggle { display: flex; gap: 4px; }
+        .view-btn { padding: 8px 12px; border: 1px solid #D9D9D9; background: white; cursor: pointer; }
+        .view-btn.active { background: #1890FF; color: white; border-color: #1890FF; }
+        .device-card { border: 1px solid #E8E8E8; border-radius: 8px; padding: 20px; transition: all 0.3s; }
+        .device-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .device-icon { width: 48px; height: 48px; background: #E6F7FF; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #1890FF; font-size: 20px; margin-bottom: 12px; }
+        .device-name { font-size: 16px; font-weight: 600; color: #262626; margin-bottom: 8px; }
+        .device-meta { font-size: 14px; color: #8C8C8C; margin-bottom: 4px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.online { background: #52C41A; }
+        .status-dot.offline { background: #8C8C8C; }
+        .action-link { color: #1890FF; cursor: pointer; margin-right: 12px; font-size: 14px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>运维管理</span><span>/</span><span>设备台账</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex gap-3">
+                            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增设备</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-upload"></i> 批量导入</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-download"></i> 导出</button>
+                        </div>
+                        <div class="flex gap-3 items-center">
+                            <select class="filter-select"><option>全部类型</option><option>智能电表</option><option>智能水表</option><option>燃气表</option></select>
+                            <select class="filter-select"><option>全部楼栋</option><option>A栋</option><option>B栋</option><option>C栋</option></select>
+                            <select class="filter-select"><option>全部状态</option><option>在线</option><option>离线</option></select>
+                            <div class="view-toggle">
+                                <button class="view-btn active"><i class="fa-solid fa-grip"></i></button>
+                                <button class="view-btn"><i class="fa-solid fa-list"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-6">
+                <div class="device-card">
+                    <div class="device-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="device-name">1号电表</div>
+                    <div class="device-meta"><i class="fa-solid fa-building"></i> A栋-1层</div>
+                    <div class="device-meta"><span class="status-dot online"></span>在线</div>
+                    <div class="device-meta"><i class="fa-solid fa-clock"></i> 最后更新：10:30:25</div>
+                    <div class="mt-4"><span class="action-link">详情</span><span class="action-link">编辑</span></div>
+                </div>
+                <div class="device-card">
+                    <div class="device-icon" style="background:#E6FFFB;color:#13C2C2;"><i class="fa-solid fa-droplet"></i></div>
+                    <div class="device-name">2号水表</div>
+                    <div class="device-meta"><i class="fa-solid fa-building"></i> A栋-2层</div>
+                    <div class="device-meta"><span class="status-dot online"></span>在线</div>
+                    <div class="device-meta"><i class="fa-solid fa-clock"></i> 最后更新：10:30:20</div>
+                    <div class="mt-4"><span class="action-link">详情</span><span class="action-link">编辑</span></div>
+                </div>
+                <div class="device-card">
+                    <div class="device-icon" style="background:#FFF7E6;color:#FA8C16;"><i class="fa-solid fa-fire"></i></div>
+                    <div class="device-name">1号燃气表</div>
+                    <div class="device-meta"><i class="fa-solid fa-building"></i> C栋-1层</div>
+                    <div class="device-meta"><span class="status-dot offline"></span>离线</div>
+                    <div class="device-meta"><i class="fa-solid fa-clock"></i> 最后更新：09:00:00</div>
+                    <div class="mt-4"><span class="action-link">详情</span><span class="action-link">编辑</span></div>
+                </div>
+                <div class="device-card">
+                    <div class="device-icon" style="background:#F9F0FF;color:#722ED1;"><i class="fa-solid fa-temperature-half"></i></div>
+                    <div class="device-name">中央空调主机</div>
+                    <div class="device-meta"><i class="fa-solid fa-building"></i> A栋-设备间</div>
+                    <div class="device-meta"><span class="status-dot online"></span>在线</div>
+                    <div class="device-meta"><i class="fa-solid fa-clock"></i> 最后更新：10:30:10</div>
+                    <div class="mt-4"><span class="action-link">详情</span><span class="action-link">编辑</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
