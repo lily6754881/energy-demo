@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自定义报表 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 15px; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-success { background: #52C41A; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .designer-layout { display: grid; grid-template-columns: 200px 1fr; gap: 16px; height: 600px; }
+        .datasource-panel { border: 1px solid #E8E8E8; border-radius: 8px; padding: 16px; overflow-y: auto; }
+        .datasource-item { padding: 10px 12px; background: #F5F5F5; border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: all 0.3s; }
+        .datasource-item:hover { background: #E6F7FF; }
+        .datasource-item i { margin-right: 8px; color: #1890FF; }
+        .canvas-panel { border: 1px solid #E8E8E8; border-radius: 8px; padding: 20px; background: #FAFAFA; }
+        .canvas-header { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px; text-align: center; font-size: 18px; font-weight: 600; color: #262626; }
+        .canvas-content { background: white; border-radius: 8px; padding: 20px; min-height: 300px; }
+        .drag-hint { border: 2px dashed #D9D9D9; border-radius: 8px; padding: 40px; text-align: center; color: #8C8C8C; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 导航由 sidebar-nav.js 自动渲染 -->
+        </div>
+        <script src="sidebar-nav.js"></script>
+        <script>initSidebarNav();</script>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>报表中心</span><span>/</span><span>自定义报表</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <div class="text-lg font-medium">报表设计器</div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-outline"><i class="fa-solid fa-eye"></i> 预览</button>
+                            <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> 保存报表</button>
+                            <button class="btn btn-success"><i class="fa-solid fa-download"></i> 导出</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="padding:0;">
+                    <div class="designer-layout" style="padding:20px;">
+                        <div class="datasource-panel">
+                            <div class="font-medium text-gray-700 mb-4">数据源</div>
+                            <div class="datasource-item"><i class="fa-solid fa-bolt"></i>能耗数据</div>
+                            <div class="datasource-item"><i class="fa-solid fa-leaf"></i>碳排放数据</div>
+                            <div class="datasource-item"><i class="fa-solid fa-file-invoice-dollar"></i>账单数据</div>
+                            <div class="datasource-item"><i class="fa-solid fa-microchip"></i>设备数据</div>
+                            <div class="datasource-item"><i class="fa-solid fa-bell"></i>告警数据</div>
+                            <div class="font-medium text-gray-700 mb-4 mt-6">拖拽字段</div>
+                            <div style="padding:8px 12px;font-size:13px;color:#8C8C8C;">从左侧数据源拖拽字段到画布</div>
+                        </div>
+                        <div class="canvas-panel">
+                            <div class="canvas-header">自定义报表标题</div>
+                            <div class="canvas-content">
+                                <div class="drag-hint">
+                                    <i class="fa-solid fa-arrows-up-down-left-right text-4xl mb-4 block text-gray-400"></i>
+                                    <div>拖拽数据字段到此处生成报表</div>
+                                    <div class="text-sm mt-2">支持表格、图表、文本等多种组件</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
