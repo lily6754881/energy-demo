@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备管理 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { padding: 10px 20px; color: rgba(255,255,255,0.45); font-size: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; user-select: none; }
+        .menu-group-header:hover { color: rgba(255,255,255,0.8); }
+        .menu-group-header.active { color: white; }
+        .menu-arrow { font-size: 10px; transition: transform 0.3s; }
+        .menu-arrow.active { transform: rotate(90deg); }
+        .menu-group-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 48px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; padding: 0 24px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb span { color: #262626; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; margin-left: auto; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .btn { height: 36px; padding: 0 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+        .btn-primary { background: #1890FF; color: white; }
+        .btn-outline { background: white; color: #595959; border: 1px solid #D9D9D9; }
+        .filter-select { height: 36px; border: 1px solid #D9D9D9; border-radius: 6px; padding: 0 12px; min-width: 140px; font-size: 14px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-size: 12px; color: #8C8C8C; font-weight: 500; border-bottom: 1px solid #E8E8E8; }
+        .data-table td { padding: 14px 16px; font-size: 14px; color: #262626; border-bottom: 1px solid #F0F0F0; }
+        .data-table tr:hover { background: #F5F5F5; }
+        .action-link { color: #1890FF; cursor: pointer; margin-right: 12px; }
+        .action-link:hover { text-decoration: underline; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.online { background: #52C41A; }
+        .status-dot.offline { background: #8C8C8C; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo"><i class="fa-solid fa-leaf"></i><span>能碳管理平台</span></div>
+        <div class="sidebar-menu" id="nav-container"></div>
+    </aside>
+    <script src="sidebar-nav.js"></script>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumb"><a href="P02-dashboard.html"><i class="fa-solid fa-home"></i></a><span>/</span><span>系统管理</span><span>/</span><span>设备管理</span></div>
+            <div class="user-avatar">管</div>
+        </div>
+        <div class="page-content">
+            <div class="card mb-6">
+                <div class="card-body">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex gap-3">
+                            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增设备</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-upload"></i> 批量导入</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-rotate"></i> 同步设备</button>
+                            <button class="btn btn-outline"><i class="fa-solid fa-download"></i> 导出</button>
+                        </div>
+                        <div class="flex gap-3 items-center">
+                            <select class="filter-select"><option>全部类型</option><option>智能电表</option><option>智能水表</option></select>
+                            <select class="filter-select"><option>全部楼栋</option><option>A栋</option><option>B栋</option></select>
+                            <select class="filter-select"><option>全部状态</option><option>在线</option><option>离线</option></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead><tr><th style="width:40px;"><input type="checkbox"></th><th>设备名称</th><th>设备编号</th><th>设备类型</th><th>所属楼栋</th><th>通讯协议</th><th>通讯状态</th><th>最后通讯</th><th>操作</th></tr></thead>
+                        <tbody>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">1号电表</td><td>MTR001</td><td>智能电表</td><td>A栋</td><td>MQTT</td><td><span class="status-dot online"></span>在线</td><td>10:30:25</td><td><span class="action-link">编辑</span><span class="action-link">详情</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">2号水表</td><td>MTR002</td><td>智能水表</td><td>A栋</td><td>Modbus</td><td><span class="status-dot online"></span>在线</td><td>10:30:20</td><td><span class="action-link">编辑</span><span class="action-link">详情</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">1号网关</td><td>GW001</td><td>采集网关</td><td>A栋</td><td>MQTT</td><td><span class="status-dot online"></span>在线</td><td>10:30:15</td><td><span class="action-link">编辑</span><span class="action-link">详情</span></td></tr>
+                            <tr><td><input type="checkbox"></td><td class="font-medium">1号燃气表</td><td>MTR003</td><td>燃气表</td><td>C栋</td><td>HTTP</td><td><span class="status-dot offline"></span>离线</td><td>09:00:00</td><td><span class="action-link">编辑</span><span class="action-link">详情</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
