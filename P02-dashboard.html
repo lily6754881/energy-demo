@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驾驶舱 - 能碳管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #F5F5F5; }
+        .sidebar { width: 220px; background: #001529; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-logo { height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo i { font-size: 24px; color: #52C41A; margin-right: 10px; }
+        .sidebar-logo span { color: white; font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; }
+        .menu-group { margin-bottom: 4px; }
+        .menu-group-header { 
+            padding: 10px 20px; 
+            color: rgba(255,255,255,0.65); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            font-size: 15px; /* 一级菜单字体调大 */
+            transition: all 0.3s;
+            user-select: none;
+        }
+        .menu-group-header:hover { background: rgba(255,255,255,0.08); color: white; }
+        .menu-group-header.active { color: white; }
+        .menu-group-header i.menu-arrow { 
+            font-size: 10px; 
+            transition: transform 0.3s;
+        }
+        .menu-group-header.active i.menu-arrow { transform: rotate(90deg); }
+        .menu-group-content { 
+            overflow: hidden; 
+            max-height: 0; 
+            transition: max-height 0.3s ease-out;
+        }
+        .menu-group-content.open { max-height: 500px; }
+        .sidebar-item { padding: 10px 20px 10px 50px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; transition: all 0.3s; font-size: 14px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-item.active { background: #1890FF; color: white; }
+        .sidebar-item i { width: 20px; margin-right: 10px; font-size: 14px; }
+        .sidebar-item span { font-size: 14px; }
+        .main-content { margin-left: 220px; min-height: 100vh; }
+        .topbar { height: 64px; background: white; border-bottom: 1px solid #E8E8E8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb a { color: #8C8C8C; text-decoration: none; }
+        .breadcrumb a:hover { color: #1890FF; }
+        .breadcrumb span { color: #262626; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .topbar-icon { position: relative; cursor: pointer; color: #595959; font-size: 18px; }
+        .topbar-icon .badge { position: absolute; top: -6px; right: -8px; background: #F5222D; color: white; font-size: 10px; padding: 2px 5px; border-radius: 10px; min-width: 16px; text-align: center; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1890FF, #52C41A); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; cursor: pointer; }
+        .page-content { padding: 24px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #262626; }
+        .card-body { padding: 20px; }
+        .stat-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); transition: all 0.3s; }
+        .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
+        .stat-icon { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .stat-icon.blue { background: #E6F7FF; color: #1890FF; }
+        .stat-icon.teal { background: #E6FFFB; color: #13C2C2; }
+        .stat-icon.orange { background: #FFF7E6; color: #FA8C16; }
+        .stat-icon.red { background: #FFF1F0; color: #F5222D; }
+        .stat-value { font-size: 28px; font-weight: 600; color: #262626; margin: 12px 0 4px; }
+        .stat-label { font-size: 14px; color: #8C8C8C; }
+        .stat-change { font-size: 12px; margin-top: 8px; }
+        .stat-change.up { color: #F5222D; }
+        .stat-change.down { color: #52C41A; }
+        .quick-entry { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+        .quick-item { background: white; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .quick-item:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .quick-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 20px; }
+        .quick-name { font-size: 14px; color: #262626; font-weight: 500; }
+        .chart-container { height: 300px; }
+        .alarm-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+        .alarm-item:last-child { border-bottom: none; }
+        .alarm-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; }
+        .alarm-dot.red { background: #F5222D; }
+        .alarm-dot.orange { background: #FA8C16; }
+        .alarm-dot.yellow { background: #FADB14; }
+        .alarm-content { flex: 1; }
+        .alarm-title { font-size: 14px; color: #262626; margin-bottom: 4px; }
+        .alarm-time { font-size: 12px; color: #8C8C8C; }
+        .status-tag { display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 12px; }
+        .status-tag.emergency { background: #FFF1F0; color: #F5222D; }
+        .status-tag.important { background: #FFF7E6; color: #FA8C16; }
+        .status-tag.normal { background: #F6FFED; color: #52C41A; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-leaf"></i>
+            <span>能碳管理平台</span>
+        </div>
+        <div class="sidebar-menu">
+            <!-- 驾驶舱（独立入口） -->
+            <div class="sidebar-item active" onclick="location.href='P02-dashboard.html'">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>驾驶舱</span>
+            </div>
+            
+            <!-- 能源管理 -->
+            <div class="menu-group" data-group="energy">
+                <div class="menu-group-header active" onclick="toggleMenu(this)">
+                    <span><i class="fa-solid fa-bolt" style="width:20px;margin-right:10px;"></i>能源管理</span>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-group-content open">
+                    <div class="sidebar-item" onclick="location.href='P03-monitor.html'">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>实时监测</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P04-history.html'">
+                        <i class="fa-solid fa-chart-area"></i>
+                        <span>历史曲线</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P05-report.html'">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>数据报表</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P06-classification.html'">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>分项计量</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P07-bill.html'">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span>账单管理</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P08-allocation.html'">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>分摊规则</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P09-entry.html'">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>能耗录入</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 碳管理 -->
+            <div class="menu-group" data-group="carbon">
+                <div class="menu-group-header" onclick="toggleMenu(this)">
+                    <span><i class="fa-solid fa-cloud" style="width:20px;margin-right:10px;"></i>碳管理</span>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-group-content">
+                    <div class="sidebar-item" onclick="location.href='P10-carbon.html'">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>碳排放核算</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P11-carbon-history.html'">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>历史数据</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P12-carbon-report.html'">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>排放报告</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 告警中心 -->
+            <div class="menu-group" data-group="alarm">
+                <div class="menu-group-header" onclick="toggleMenu(this)">
+                    <span><i class="fa-solid fa-bell" style="width:20px;margin-right:10px;"></i>告警中心</span>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-group-content">
+                    <div class="sidebar-item" onclick="location.href='P13-alarm-config.html'">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>告警配置</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P14-alarm-list.html'">
+                        <i class="fa-solid fa-list"></i>
+                        <span>告警记录</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P15-alarm-handle.html'">
+                        <i class="fa-solid fa-hand"></i>
+                        <span>告警处理</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 运维管理 -->
+            <div class="menu-group" data-group="ops">
+                <div class="menu-group-header" onclick="toggleMenu(this)">
+                    <span><i class="fa-solid fa-server" style="width:20px;margin-right:10px;"></i>运维管理</span>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-group-content">
+                    <div class="sidebar-item" onclick="location.href='P16-device-account.html'">
+                        <i class="fa-solid fa-database"></i>
+                        <span>设备台账</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 报表中心 -->
+            <div class="menu-group" data-group="report">
+                <div class="menu-group-header" onclick="toggleMenu(this)">
+                    <span><i class="fa-solid fa-chart-bar" style="width:20px;margin-right:10px;"></i>报表中心</span>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-group-content">
+                    <div class="sidebar-item" onclick="location.href='P17-report-template.html'">
+                        <i class="fa-solid fa-newspaper"></i>
+                        <span>报表模板</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P18-report-custom.html'">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>自定义报表</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统管理 -->
+            <div class="menu-group" data-group="system">
+                <div class="menu-group-header" onclick="toggleMenu(this)">
+                    <span><i class="fa-solid fa-gears" style="width:20px;margin-right:10px;"></i>系统管理</span>
+                    <i class="fa-solid fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-group-content">
+                    <div class="sidebar-item" onclick="location.href='P19-tenant.html'">
+                        <i class="fa-solid fa-building"></i>
+                        <span>租户管理</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P20-user.html'">
+                        <i class="fa-solid fa-users"></i>
+                        <span>用户权限</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P21-building.html'">
+                        <i class="fa-solid fa-house"></i>
+                        <span>建筑管理</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P22-device.html'">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>设备管理</span>
+                    </div>
+                    <div class="sidebar-item" onclick="location.href='P23-param.html'">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>参数配置</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="topbar">
+            <div class="breadcrumb">
+                <a href="#"><i class="fa-solid fa-home"></i></a>
+                <span>/</span>
+                <span>驾驶舱</span>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-icon">
+                    <i class="fa-regular fa-envelope"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-icon">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="badge">2</span>
+                </div>
+                <div class="user-avatar">管</div>
+            </div>
+        </div>
+
+        <!-- 页面内容 -->
+        <div class="page-content">
+            <!-- 快捷入口 -->
+            <div class="quick-entry">
+                <div class="quick-item" onclick="location.href='P03-monitor.html'">
+                    <div class="quick-icon" style="background: #E6F7FF; color: #1890FF;">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <div class="quick-name">实时监测</div>
+                </div>
+                <div class="quick-item" onclick="location.href='P14-alarm-list.html'">
+                    <div class="quick-icon" style="background: #FFF1F0; color: #F5222D;">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="quick-name">告警记录</div>
+                </div>
+                <div class="quick-item" onclick="location.href='P07-bill.html'">
+                    <div class="quick-icon" style="background: #F6FFED; color: #52C41A;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="quick-name">账单管理</div>
+                </div>
+                <div class="quick-item" onclick="location.href='P10-carbon.html'">
+                    <div class="quick-icon" style="background: #E6F7FF; color: #13C2C2;">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div class="quick-name">碳排放核算</div>
+                </div>
+                <div class="quick-item" onclick="location.href='P16-device-account.html'">
+                    <div class="quick-icon" style="background: #FFF7E6; color: #FA8C16;">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <div class="quick-name">设备台账</div>
+                </div>
+            </div>
+
+            <!-- 今日能耗概览 -->
+            <div class="grid grid-cols-4 gap-6 mb-6">
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="stat-label">今日用电</div>
+                            <div class="stat-value">1,234 <span class="text-base font-normal">kWh</span></div>
+                            <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> 12.5%</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="stat-label">今日用水</div>
+                            <div class="stat-value">456 <span class="text-base font-normal">m³</span></div>
+                            <div class="stat-change down"><i class="fa-solid fa-arrow-down"></i> 5.2%</div>
+                        </div>
+                        <div class="stat-icon teal">
+                            <i class="fa-solid fa-droplet"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="stat-label">今日用气</div>
+                            <div class="stat-value">78 <span class="text-base font-normal">m³</span></div>
+                            <div class="stat-change up"><i class="fa-solid fa-arrow-up"></i> 3.8%</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="stat-label">今日用热</div>
+                            <div class="stat-value">123 <span class="text-base font-normal">GJ</span></div>
+                            <div class="stat-change down"><i class="fa-solid fa-arrow-down"></i> 2.1%</div>
+                        </div>
+                        <div class="stat-icon red">
+                            <i class="fa-solid fa-temperature-half"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="grid grid-cols-3 gap-6 mb-6">
+                <!-- 能源趋势图 -->
+                <div class="card col-span-2">
+                    <div class="card-header">
+                        <span class="card-title">近7日用能趋势</span>
+                        <select class="text-sm border border-gray-200 rounded px-2 py-1">
+                            <option>全部</option>
+                            <option>电力</option>
+                            <option>水</option>
+                            <option>气</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div id="trendChart" class="chart-container"></div>
+                    </div>
+                </div>
+                
+                <!-- 分项占比 -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">今日用能分项</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="pieChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 碳排放和告警 -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- 碳排放概览 -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">本月碳排放概览</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-6">
+                            <div class="text-4xl font-bold text-gray-800">12,345</div>
+                            <div class="text-lg text-gray-500 mb-4">tCO₂</div>
+                            <div class="stat-change down inline-block px-4 py-1 bg-green-50 rounded"><i class="fa-solid fa-arrow-down"></i> 8.5% 同比下降</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div class="text-center p-3 bg-gray-50 rounded">
+                                <div class="text-xl font-semibold text-blue-500">8,456</div>
+                                <div class="text-xs text-gray-500">范围2排放(t)</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded">
+                                <div class="text-xl font-semibold text-orange-500">3,889</div>
+                                <div class="text-xs text-gray-500">其他排放(t)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 碳排放趋势 -->
+                <div class="card col-span-1">
+                    <div class="card-header">
+                        <span class="card-title">碳排放趋势</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="carbonChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- 告警动态 -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">告警动态</span>
+                        <a href="P14-alarm-list.html" class="text-blue-500 text-sm hover:underline">查看全部</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="alarm-item">
+                            <div class="alarm-dot red"></div>
+                            <div class="alarm-content">
+                                <div class="alarm-title">1号配电室电表数据异常</div>
+                                <div class="alarm-time">2026-04-28 10:30</div>
+                            </div>
+                            <span class="status-tag emergency">紧急</span>
+                        </div>
+                        <div class="alarm-item">
+                            <div class="alarm-dot orange"></div>
+                            <div class="alarm-content">
+                                <div class="alarm-title">3号楼空调能耗超限</div>
+                                <div class="alarm-time">2026-04-28 09:15</div>
+                            </div>
+                            <span class="status-tag important">重要</span>
+                        </div>
+                        <div class="alarm-item">
+                            <div class="alarm-dot yellow"></div>
+                            <div class="alarm-content">
+                                <div class="alarm-title">水表数据采集失败</div>
+                                <div class="alarm-time">2026-04-28 08:00</div>
+                            </div>
+                            <span class="status-tag normal">已处理</span>
+                        </div>
+                        <div class="alarm-item">
+                            <div class="alarm-dot orange"></div>
+                            <div class="alarm-content">
+                                <div class="alarm-title">2号电表通讯中断</div>
+                                <div class="alarm-time">2026-04-27 16:20</div>
+                            </div>
+                            <span class="status-tag important">重要</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 手风琴导航功能
+        function toggleMenu(header) {
+            const group = header.parentElement;
+            const content = group.querySelector('.menu-group-content');
+            const isOpen = content.classList.contains('open');
+            
+            // 关闭所有分组
+            document.querySelectorAll('.menu-group-content').forEach(c => c.classList.remove('open'));
+            document.querySelectorAll('.menu-group-header').forEach(h => {
+                h.classList.remove('active');
+                h.querySelector('.menu-arrow')?.classList.remove('active');
+            });
+            
+            // 如果当前是关闭的，则打开它
+            if (!isOpen) {
+                content.classList.add('open');
+                header.classList.add('active');
+                header.querySelector('.menu-arrow')?.classList.add('active');
+            }
+        }
+        
+        // 页面加载时自动展开当前分组
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeItem = document.querySelector('.sidebar-item.active');
+            if (activeItem) {
+                const group = activeItem.closest('.menu-group');
+                if (group) {
+                    const header = group.querySelector('.menu-group-header');
+                    const content = group.querySelector('.menu-group-content');
+                    content.classList.add('open');
+                    header.classList.add('active');
+                    header.querySelector('.menu-arrow')?.classList.add('active');
+                }
+            }
+        });
+        
+        // 初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            // 能源趋势图
+            var trendChart = echarts.init(document.getElementById('trendChart'));
+            trendChart.setOption({
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['电力', '水', '气'], bottom: 0 },
+                grid: { left: '3%', right: '4%', bottom: '15%', top: '3%', containLabel: true },
+                xAxis: { type: 'category', data: ['04-22', '04-23', '04-24', '04-25', '04-26', '04-27', '04-28'], axisLine: { lineStyle: { color: '#E8E8E8' } } },
+                yAxis: { type: 'value', axisLine: { show: false }, splitLine: { lineStyle: { color: '#F0F0F0' } } },
+                series: [
+                    { name: '电力', type: 'line', smooth: true, data: [1200, 1350, 1280, 1420, 1380, 1250, 1234], itemStyle: { color: '#1890FF' } },
+                    { name: '水', type: 'line', smooth: true, data: [420, 450, 435, 460, 445, 430, 456], itemStyle: { color: '#13C2C2' } },
+                    { name: '气', type: 'line', smooth: true, data: [65, 72, 68, 75, 70, 65, 78], itemStyle: { color: '#FA8C16' } }
+                ]
+            });
+
+            // 分项占比饼图
+            var pieChart = echarts.init(document.getElementById('pieChart'));
+            pieChart.setOption({
+                tooltip: { trigger: 'item', formatter: '{b}: {c}% ({d}%)' },
+                legend: { orient: 'vertical', right: '5%', top: 'center', textStyle: { color: '#595959' } },
+                series: [{
+                    type: 'pie',
+                    radius: ['45%', '70%'],
+                    center: ['35%', '50%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+                    label: { show: false },
+                    data: [
+                        { value: 35, name: '照明用电', itemStyle: { color: '#1890FF' } },
+                        { value: 40, name: '空调用电', itemStyle: { color: '#13C2C2' } },
+                        { value: 15, name: '动力用电', itemStyle: { color: '#FA8C16' } },
+                        { value: 10, name: '特殊用电', itemStyle: { color: '#722ED1' } }
+                    ]
+                }]
+            });
+
+            // 碳排放趋势图
+            var carbonChart = echarts.init(document.getElementById('carbonChart'));
+            carbonChart.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '10%', top: '3%', containLabel: true },
+                xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月'], axisLine: { lineStyle: { color: '#E8E8E8' } } },
+                yAxis: { type: 'value', axisLine: { show: false }, splitLine: { lineStyle: { color: '#F0F0F0' } } },
+                series: [{
+                    type: 'bar',
+                    data: [13500, 12800, 12300, 12345],
+                    itemStyle: { color: '#52C41A', borderRadius: [4, 4, 0, 0] },
+                    barWidth: '50%'
+                }]
+            });
+
+            // 响应式
+            window.addEventListener('resize', function() {
+                trendChart.resize();
+                pieChart.resize();
+                carbonChart.resize();
+            });
+        });
+    </script>
+</body>
+</html>
