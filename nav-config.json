@@ -1,0 +1,196 @@
+{
+  "logo": {
+    "icon": "fa-solid fa-leaf",
+    "name": "能碳管理平台"
+  },
+  "menus": [
+    {
+      "id": "dashboard",
+      "icon": "fa-solid fa-chart-line",
+      "name": "驾驶舱",
+      "href": "P02-dashboard.html",
+      "level": 1,
+      "active": true
+    },
+    {
+      "id": "energy",
+      "icon": "fa-solid fa-bolt",
+      "name": "能源管理",
+      "href": null,
+      "level": 1,
+      "children": [
+        {
+          "id": "energy-monitor",
+          "icon": "fa-solid fa-gauge-high",
+          "name": "实时监测",
+          "href": "P03-monitor.html"
+        },
+        {
+          "id": "energy-history",
+          "icon": "fa-solid fa-chart-area",
+          "name": "历史曲线",
+          "href": "P04-history.html"
+        },
+        {
+          "id": "energy-report",
+          "icon": "fa-solid fa-file-lines",
+          "name": "数据报表",
+          "href": "P05-report.html"
+        },
+        {
+          "id": "energy-classification",
+          "icon": "fa-solid fa-layer-group",
+          "name": "分项计量",
+          "href": "P06-classification.html"
+        },
+        {
+          "id": "energy-bill",
+          "icon": "fa-solid fa-file-invoice-dollar",
+          "name": "账单管理",
+          "href": "P07-bill.html"
+        },
+        {
+          "id": "energy-allocation",
+          "icon": "fa-solid fa-calculator",
+          "name": "分摊规则",
+          "href": "P08-allocation.html"
+        },
+        {
+          "id": "energy-entry",
+          "icon": "fa-solid fa-pen-to-square",
+          "name": "能耗录入",
+          "href": "P09-entry.html"
+        }
+      ]
+    },
+    {
+      "id": "carbon",
+      "icon": "fa-solid fa-leaf",
+      "name": "碳管理",
+      "href": null,
+      "level": 1,
+      "children": [
+        {
+          "id": "carbon-calc",
+          "icon": "fa-solid fa-calculator",
+          "name": "碳排放核算",
+          "href": "P10-carbon.html"
+        },
+        {
+          "id": "carbon-history",
+          "icon": "fa-solid fa-clock-rotate-left",
+          "name": "历史数据",
+          "href": "P11-carbon-history.html"
+        },
+        {
+          "id": "carbon-report",
+          "icon": "fa-solid fa-file-pdf",
+          "name": "排放报告",
+          "href": "P12-carbon-report.html"
+        }
+      ]
+    },
+    {
+      "id": "alarm",
+      "icon": "fa-solid fa-bell",
+      "name": "告警中心",
+      "href": null,
+      "level": 1,
+      "children": [
+        {
+          "id": "alarm-config",
+          "icon": "fa-solid fa-gear",
+          "name": "告警配置",
+          "href": "P13-alarm-config.html"
+        },
+        {
+          "id": "alarm-list",
+          "icon": "fa-solid fa-list",
+          "name": "告警记录",
+          "href": "P14-alarm-list.html"
+        },
+        {
+          "id": "alarm-handle",
+          "icon": "fa-solid fa-hand",
+          "name": "告警处理",
+          "href": "P15-alarm-handle.html"
+        }
+      ]
+    },
+    {
+      "id": "operation",
+      "icon": "fa-solid fa-wrench",
+      "name": "运维管理",
+      "href": null,
+      "level": 1,
+      "children": [
+        {
+          "id": "operation-device",
+          "icon": "fa-solid fa-microchip",
+          "name": "设备台账",
+          "href": "P16-device-account.html"
+        }
+      ]
+    },
+    {
+      "id": "report",
+      "icon": "fa-solid fa-chart-bar",
+      "name": "报表中心",
+      "href": null,
+      "level": 1,
+      "children": [
+        {
+          "id": "report-template",
+          "icon": "fa-solid fa-table",
+          "name": "报表模板",
+          "href": "P17-report-template.html"
+        },
+        {
+          "id": "report-custom",
+          "icon": "fa-solid fa-wand-magic-sparkles",
+          "name": "自定义报表",
+          "href": "P18-report-custom.html"
+        }
+      ]
+    },
+    {
+      "id": "system",
+      "icon": "fa-solid fa-gears",
+      "name": "系统管理",
+      "href": null,
+      "level": 1,
+      "children": [
+        {
+          "id": "system-tenant",
+          "icon": "fa-solid fa-building",
+          "name": "租户管理",
+          "href": "P19-tenant.html"
+        },
+        {
+          "id": "system-user",
+          "icon": "fa-solid fa-users",
+          "name": "用户权限",
+          "href": "P20-user.html"
+        },
+        {
+          "id": "system-building",
+          "icon": "fa-solid fa-city",
+          "name": "建筑管理",
+          "href": "P21-building.html"
+        },
+        {
+          "id": "system-device",
+          "icon": "fa-solid fa-server",
+          "name": "设备管理",
+          "href": "P22-device.html"
+        },
+        {
+          "id": "system-param",
+          "icon": "fa-solid fa-sliders",
+          "name": "参数配置",
+          "href": "P23-param.html"
+        }
+      ]
+    }
+  ]
+}
